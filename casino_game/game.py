@@ -80,6 +80,12 @@ def begin():
             break
         elif n==1:
             name = input('Adinizi daxil edin: ')
+            cursor.execute(f"SELECT * FROM CASINOPLAYER WHERE NAME='{name}'")
+            data = cursor.fetchone()
+            while data:
+                name = input('Belə bir ad bazada mövcuddur. Yeni adinizi daxil edin: ')
+                cursor.execute(f"SELECT * FROM CASINOPLAYER WHERE NAME='{name}'")
+                data = cursor.fetchone()
             password = int(input('Password daxil edin(ancaq rəqəmlə): '))
             repassword = int(input('Password"u yenidən daxil edin(ancaq rəqəmlə): '))
             while password!=repassword:
