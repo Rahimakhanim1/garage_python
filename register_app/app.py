@@ -1,12 +1,8 @@
 import sqlite3
 conn = sqlite3.connect('register.db')
-
+import hashlib
 import maskpass  
 import base64
-
-from cryptography.fernet import Fernet
-key = Fernet.generate_key() 
-cipher_suite = Fernet(key)
 
 conn.execute("""
     CREATE TABLE IF NOT EXISTS REGISTER(
@@ -30,10 +26,15 @@ def login():
         cursor.execute(f"SELECT * FROM REGISTER WHERE EMAIL = '{email}'")
         data = cursor.fetchone()
     passwordFromDb = data[4]
-    encpwd = base64.b64decode(passwordFromDb).decode("latin-1")
-    pwd = maskpass.askpass("Password : ")
-    while pwd!=encpwd:
-        pwd = maskpass.askpass("Password : ")
+
+    pwd = maskpass.askpass("Şifrənizi daxil edin : ")
+    pwd = pwd.encode("utf-8")
+    sha256 = hashlib.sha256()
+   
+    sha256.update(pwd)
+    pwd = sha256.hexdigest()
+    while pwd!=passwordFromDb:
+        pwd = maskpass.askpass("Yalnış daxil etdiniz yenidən sınayın : ")
 
     print("Giriş etdiniz")
 
@@ -52,12 +53,13 @@ def register():
     while pwd!=rpwd:
         print('Düzgün daxil etmirsiniz!')
         rpwd = maskpass.askpass("Password'u yenidən daxil edin: ") 
-    encpwd = base64.b64encode(pwd.encode("utf-16"))
-    # password_bytes = password.encode('utf-8')
-    # encoded_password = cipher_suite.encrypt(password_bytes)
-    # decoded_text = cipher_suite.decrypt(encoded_password)
-    # print(decoded_text.decode('utf-8'))
-    cursor.execute(f"INSERT INTO REGISTER (EMAIL,FIRSTNAME,LASTNAME,PASSWORD) VALUES (?,?,?,?)",(email,firstName,lastName,encpwd))
+
+    pwd = pwd.encode("utf-8")
+    sha256 = hashlib.sha256()
+   
+    sha256.update(pwd)
+    pwd = sha256.hexdigest()
+    cursor.execute(f"INSERT INTO REGISTER (EMAIL,FIRSTNAME,LASTNAME,PASSWORD) VALUES (?,?,?,?)",(email,firstName,lastName,pwd))
     conn.commit()
     return "Qeydiyyat müvəffəqiyyətlə bitdi!"
     
